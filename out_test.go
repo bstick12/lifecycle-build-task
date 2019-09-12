@@ -3,7 +3,6 @@ package lifecycle_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -119,8 +118,6 @@ var _ = Describe("Out", func() {
 		// })
 
 		It("builds the container", func() {
-
-			fmt.Printf("%#v\n", req.Source)
 
 			_, err := git.PlainClone(srcDir, false, &git.CloneOptions{
 				URL:      "https://github.com/bstick12/goflake-server",
