@@ -13,6 +13,7 @@ RUN set -e; for pkg in $(go list ./...); do \
 	done
 
 FROM $BUILDER AS resource
+USER root
 COPY --from=registry-image-resource /opt/resource/ /opt/resource
 COPY --from=pack-lifecycle-resource-builder /assets/ /opt/resource
 WORKDIR /opt/resource
