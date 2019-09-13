@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 
 	. "github.com/onsi/ginkgo"
@@ -32,7 +33,7 @@ func populateResponse(session *gexec.Session) {
 
 func runCmd() (*gexec.Session, error) {
 
-	cmd := exec.Command(bins.Out, srcDir)
+	cmd := exec.Command(bins.Out, filepath.Dir(srcDir))
 
 	payload, err := json.Marshal(req)
 	Expect(err).ToNot(HaveOccurred())
@@ -99,9 +100,10 @@ var _ = Describe("Out", func() {
 				Username:   dockerUsername,
 				Password:   dockerPassword,
 			}
+			req.Params.SourceDir = filepath.Base(srcDir)
 		})
 
-		// Docker current doesn't support delete
+		// Docker currently doesn't support delete
 		// AfterEach(func() {
 
 		// 	auth := &authn.Basic{

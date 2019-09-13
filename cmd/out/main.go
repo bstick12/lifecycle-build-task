@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
-
-	"github.com/fatih/color"
-	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/sirupsen/logrus"
 
 	lr "github.com/bstick12/pack-lifecycle-resource"
 	resource "github.com/concourse/registry-image-resource"
+	"github.com/fatih/color"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/otiai10/copy"
+	"github.com/sirupsen/logrus"
 )
 
 const layersDir = "/layers"
@@ -56,7 +58,8 @@ func main() {
 		return
 	}
 
-	src := os.Args[1]
+	src, err := ioutil.TempDir("", "source")
+	copy.Copy(filepath.Join(os.Args[1], req.Params.SourceDir), src)
 
 	ref, err := name.ParseReference(req.Source.Name(), name.WeakValidation)
 	if err != nil {
