@@ -122,19 +122,16 @@ var _ = Describe("Out", func() {
 		It("builds the container", func() {
 
 			_, err := git.PlainClone(srcDir, false, &git.CloneOptions{
-				URL:      "https://github.com/buildpack/sample-java-app",
+				URL:      "https://github.com/bstick12/goflake-server",
 				Progress: os.Stdout,
 			})
 			Expect(err).NotTo(HaveOccurred())
-
-			req.Params.Env = []lr.EnvVariable{{Name: "BP_JAVA_VERSION", Value: "8.*"}}
 
 			session, err = runCmd()
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(session, 200).Should(gexec.Exit(0))
 
 			Expect(session.Err).To(gbytes.Say("Resolving plan"))
-			Expect(session.Err).To(gbytes.Say("OpenJDK JDK 8"))
 			Expect(session.Err).To(gbytes.Say("Exporting layer"))
 			Expect(session.Err).To(gbytes.Say("Digest:"))
 
