@@ -20,8 +20,10 @@ WORKDIR /opt/resource
 
 FROM resource AS tests
 COPY --from=pack-lifecycle-resource-builder /tests /tests
+COPY ./testdata /tests/testdata
 ARG DOCKER_USERNAME
 ARG DOCKER_PASSWORD
+WORKDIR /tests
 RUN set -e; for test in /tests/*.test; do \
 		$test -ginkgo.v; \
  	done

@@ -22,6 +22,7 @@ const layersDir = "/layers"
 const groupPath = layersDir + "/group.toml"
 const planPath = layersDir + "/plan.toml"
 const analyzedPath = layersDir + "/analyzed.toml"
+const platformDir = "/platform"
 
 type command struct {
 	Cmd           string
@@ -85,6 +86,8 @@ func main() {
 		return
 	}
 	logrus.Infof("Wrote %s for registry %s", configFile, registry)
+
+	lr.ConfigPlatformEnvVars(platformDir, req.Params.Env)
 
 	var exportBuffer bytes.Buffer
 	exportWriter := io.MultiWriter(os.Stderr, &exportBuffer)

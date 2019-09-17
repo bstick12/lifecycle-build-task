@@ -3,8 +3,14 @@ package lifecycle
 import resource "github.com/concourse/registry-image-resource"
 
 type OutParams struct {
-	SourceDir string `json:"source"`
-	CacheDir  string `json:"cache"`
+	SourceDir string        `json:"source"`
+	CacheDir  string        `json:"cache"`
+	Env       []EnvVariable `json:"env"`
+}
+
+type EnvVariable struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type OutRequest struct {

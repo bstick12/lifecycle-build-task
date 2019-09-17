@@ -122,17 +122,19 @@ var _ = Describe("Out", func() {
 		It("builds the container", func() {
 
 			_, err := git.PlainClone(srcDir, false, &git.CloneOptions{
-				URL:      "https://github.com/bstick12/goflake-server",
+				URL:      "https://github.com/buildpack/sample-java-app",
 				Progress: os.Stdout,
 			})
 			Expect(err).NotTo(HaveOccurred())
+
+			req.Params.Env = []lr.EnvVariable{{Name: "BP_JAVA_VERSION", Value: "8.*"}}
 
 			session, err = runCmd()
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(session, 200).Should(gexec.Exit(0))
 
 			Expect(session.Err).To(gbytes.Say("Resolving plan"))
-			Expect(session.Err).To(gbytes.Say("Contributing app binary layer"))
+			Expect(session.Err).To(gbytes.Say("OpenJDK JDK 8"))
 			Expect(session.Err).To(gbytes.Say("Exporting layer"))
 			Expect(session.Err).To(gbytes.Say("Digest:"))
 
@@ -145,7 +147,7 @@ var _ = Describe("Out", func() {
 
 		})
 
-		XIt("builds the container twice and uses cached layers", func() {
+		It("builds the container twice and uses cached layers", func() {
 
 			_, err := git.PlainClone(srcDir, false, &git.CloneOptions{
 				URL:      "https://github.com/bstick12/goflake-server",
@@ -162,14 +164,8 @@ var _ = Describe("Out", func() {
 			session, err = runCmd()
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(session, 200).Should(gexec.Exit(0))
-			Expect(session.Err).To(gbytes.Say("Caching layer"))
 			Expect(session.Err).To(gbytes.Say("Digest:"))
-
-			_, err = git.PlainClone(srcDir, false, &git.CloneOptions{
-				URL:      "https://github.com/bstick12/goflake-server",
-				Progress: os.Stdout,
-			})
-			Expect(err).NotTo(HaveOccurred())
+			Expect(session.Err).To(gbytes.Say("Caching layer"))
 
 			session, err = runCmd()
 			Expect(err).ToNot(HaveOccurred())
