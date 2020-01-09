@@ -13,7 +13,6 @@ RUN set -e; for pkg in $(go list ./...); do \
 FROM $BUILDER AS resource
 USER root
 COPY --from=lifecycle-build-task-builder /assets/ /usr/bin
-WORKDIR /opt/resource
 
 FROM resource AS tests
 COPY --from=lifecycle-build-task-builder /tests /tests
