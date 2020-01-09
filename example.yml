@@ -1,0 +1,33 @@
+---
+resources:
+- name: git-goflake-server
+  type: git
+  icon: "github-circle"
+  source:
+    uri: https://github.com/bstick12/goflake-server
+
+jobs:
+- name: build-goflake-server-tiny
+  plan:
+  - get: git-goflake-server
+    trigger: true
+  - task: goflake-server-lifecycle
+    config:
+      platform: linux
+      # The image resource configuration for the lifecycle-build task
+      image_resource:
+        type: registry-image
+        source:
+          repository: bstick12/lifecycle-build-task
+          # Change this if you want to use a different CNB builder e.g. bionic, cflinuxfs3
+          tag: tiny
+      params:
+        REPOSITORY: bstick12/goflake-server-lifecycle
+        TAG: tiny
+        CONTEXT: git-goflake-server
+        REGISTRY_USERNAME: ((docker-hub-username))
+        REGISTRY_PASSWORD: ((docker-hub-password))
+      inputs:
+      - name: git-goflake-server
+      run:
+        path: lifecycle-build-task

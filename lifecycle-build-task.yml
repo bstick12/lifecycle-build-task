@@ -1,0 +1,54 @@
+<%
+  resources={ 
+    "cflinuxfs3" => "cloudfoundry/cnb:cflinuxfs3",
+    "bionic" => "cloudfoundry/cnb:bionic",
+    "tiny" => "cloudfoundry/cnb:tiny"
+  }
+%>
+---
+resources:
+- name: git-lifecycle-build-task
+  type: git
+  icon: "github-circle"
+  source:
+    uri: https://github.com/bstick12/lifecycle-build-task
+
+<%
+resources.each do |key,value| 
+values = value.split(":")
+%>
+- name: <%= value %>
+  type: docker-image
+  icon: "docker"
+  source:
+    repository: <%= values[0] %>
+    tag: <%= values[1] %> 
+<% end %>
+
+<% resources.each do |key,value| %>
+- name: lifecycle-build-task:<%= key %>
+  type: docker-image
+  icon: "docker"
+  source:
+    repository: bstick12/lifecycle-build-task
+    tag: <%= key %> 
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+<% end %>
+
+jobs:
+<% resources.each do |key,value| %>
+- name: build-<%= key %>
+  plan:
+  - get: git-lifecycle-build-task
+    trigger: true
+  - get: <%= value %>
+    trigger: true
+  - put: lifecycle-build-task:<%= key %>
+    params:
+      build: git-lifecycle-build-task
+      build_args:
+        BUILDER: <%= value %>
+        DOCKER_USERNAME: ((docker-hub-username))
+        DOCKER_PASSWORD: ((docker-hub-password))
+<% end %>
