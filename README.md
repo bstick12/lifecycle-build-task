@@ -99,3 +99,8 @@ jobs:
       run:
         path: lifecycle-build-task
 ```
+
+
+## Developing
+
+There is `Makefile` provided to build and test the `lifecycle-build-task` locally
