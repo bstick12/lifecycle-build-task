@@ -33,7 +33,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	if _, err := os.Stat("/usr/bin/lifecycle-build-task"); err == nil {
 		b.Task = "/usr/bin/lifecycle-build-task"
 	} else {
-		b.Task, err = gexec.Build("github.com/bstick12/pack-lifecycle-resource/cmd/task")
+		b.Task, err = gexec.Build("github.com/bstick12/lifecycle-build-task/cmd/task")
 		Expect(err).ToNot(HaveOccurred())
 	}
 

@@ -1,8 +1,6 @@
 ARG BUILDER=cloudfoundry/cnb:bionic
 
-FROM concourse/registry-image-resource AS registry-image-resource
-
-FROM golang:stretch AS pack-lifecycle-resource-builder
+FROM golang:stretch AS lifecycle-build-task-builder
 COPY ./ /src
 WORKDIR /src
 ENV CGO_ENABLED 0
@@ -14,11 +12,11 @@ RUN set -e; for pkg in $(go list ./...); do \
 
 FROM $BUILDER AS resource
 USER root
-COPY --from=pack-lifecycle-resource-builder /assets/ /usr/bin
+COPY --from=lifecycle-build-task-builder /assets/ /usr/bin
 WORKDIR /opt/resource
 
 FROM resource AS tests
-COPY --from=pack-lifecycle-resource-builder /tests /tests
+COPY --from=lifecycle-build-task-builder /tests /tests
 ARG DOCKER_USERNAME
 ARG DOCKER_PASSWORD
 WORKDIR /tests

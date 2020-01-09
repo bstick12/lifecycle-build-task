@@ -3,7 +3,8 @@ package task_test
 import (
 	"os"
 
-	"github.com/bstick12/pack-lifecycle-resource/pkg/task"
+	"github.com/bstick12/lifecycle-build-task/pkg/task"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

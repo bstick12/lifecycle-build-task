@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bstick12/pack-lifecycle-resource/pkg/task"
+	"github.com/bstick12/lifecycle-build-task/pkg/task"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vrischmann/envconfig"

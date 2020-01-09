@@ -1,4 +1,4 @@
-module github.com/bstick12/pack-lifecycle-resource
+module github.com/bstick12/lifecycle-build-task
 
 go 1.12
 
