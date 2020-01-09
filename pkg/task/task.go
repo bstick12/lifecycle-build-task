@@ -1,4 +1,4 @@
-package main
+package task
 
 import (
 	"bytes"
@@ -7,15 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 
-	lr "github.com/bstick12/pack-lifecycle-resource"
-	resource "github.com/concourse/registry-image-resource"
+	rir "github.com/concourse/registry-image-resource"
 	"github.com/fatih/color"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/otiai10/copy"
 	"github.com/sirupsen/logrus"
+	"github.com/vrischmann/envconfig"
 )
 
 const layersDir = "/layers"
@@ -31,7 +30,8 @@ type command struct {
 	RequiresCache bool
 }
 
-func main() {
+func BuildTask() {
+
 	logrus.SetOutput(os.Stderr)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		ForceColors: true,
@@ -39,30 +39,31 @@ func main() {
 
 	color.NoColor = false
 
-	var req lr.OutRequest
-	decoder := json.NewDecoder(os.Stdin)
-	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&req)
+	config := ConfigTask{}
+	err := envconfig.Init(&config)
 	if err != nil {
-		logrus.Errorf("invalid payload: %s", err)
+		logrus.Errorf("invalid parameters: %s", err)
 		os.Exit(1)
 		return
 	}
 
-	if req.Source.Debug {
+	buildEnv, err := config.BuildEnv()
+	if err != nil {
+		logrus.Errorf("invalid parameters: %s", err)
+		os.Exit(1)
+		return
+	}
+
+	if config.Debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	if len(os.Args) < 2 {
-		logrus.Errorf("destination path not specified")
-		os.Exit(1)
-		return
-	}
+	logrus.Debugf("read config from env: %#v\n", config)
 
 	src, err := ioutil.TempDir("", "source")
-	copy.Copy(filepath.Join(os.Args[1], req.Params.SourceDir), src)
+	copy.Copy(config.ContextDir, src)
 
-	ref, err := name.ParseReference(req.Source.Name(), name.WeakValidation)
+	ref, err := name.ParseReference(config.Name(), name.WeakValidation)
 	if err != nil {
 		logrus.Errorf("could not resolve repository/tag reference: %s", err)
 		os.Exit(1)
@@ -70,16 +71,16 @@ func main() {
 	}
 
 	cachingEnabled := false
-	if req.Params.CacheDir != "" {
-		cachingEnabled = true
-		if _, err := os.Stat(req.Params.CacheDir); err != nil {
+	if config.CacheDir != "" {
+		if _, err := os.Stat(config.CacheDir); err != nil {
 			logrus.Errorf("cacheDir does not exist: %s", err)
 		}
+		cachingEnabled = true
 	}
 
 	registry := ref.Context().RegistryStr()
 
-	configFile, err := lr.WriteConfig(registry, req.Source.Username, req.Source.Password)
+	configFile, err := WriteConfig(registry, config.Username, config.Password)
 	if err != nil {
 		logrus.Errorf("failed to write docker config.json: %s", err)
 		os.Exit(1)
@@ -87,7 +88,12 @@ func main() {
 	}
 	logrus.Infof("Wrote %s for registry %s", configFile, registry)
 
-	lr.ConfigPlatformEnvVars(platformDir, req.Params.Env)
+	err = ConfigPlatformEnvVars(platformDir, buildEnv)
+	if err != nil {
+		logrus.Errorf("failed to write platform vars: %s", err)
+		os.Exit(1)
+		return
+	}
 
 	var exportBuffer bytes.Buffer
 	exportWriter := io.MultiWriter(os.Stderr, &exportBuffer)
@@ -101,13 +107,13 @@ func main() {
 		},
 		{
 			"/lifecycle/restorer",
-			[]string{"-layers", layersDir, "-group", groupPath, "-path", req.Params.CacheDir},
+			[]string{"-layers", layersDir, "-group", groupPath, "-path", config.CacheDir},
 			os.Stderr,
 			true,
 		},
 		{
 			"/lifecycle/analyzer",
-			[]string{"-app", src, "-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, req.Source.Name()},
+			[]string{"-app", src, "-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, config.Name()},
 			os.Stderr,
 			false,
 		},
@@ -119,13 +125,13 @@ func main() {
 		},
 		{
 			"/lifecycle/exporter",
-			[]string{"-app", src, "-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, req.Source.Name()},
+			[]string{"-app", src, "-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, config.Name()},
 			exportWriter,
 			false,
 		},
 		{
 			"/lifecycle/cacher",
-			[]string{"-layers", layersDir, "-group", groupPath, "-path", req.Params.CacheDir},
+			[]string{"-layers", layersDir, "-group", groupPath, "-path", config.CacheDir},
 			os.Stderr,
 			true,
 		},
@@ -145,21 +151,24 @@ func main() {
 		}
 	}
 
-	re := regexp.MustCompile(`.*Digest:.(.*)`)
+	re := regexp.MustCompile(`.*Images.\((.*)\)`)
 	if !re.Match(exportBuffer.Bytes()) {
 		logrus.Errorf("failed to extract image digest from output")
+		os.Exit(1)
+		return
 	}
 
 	digest := string(re.FindSubmatch(exportBuffer.Bytes())[1])
-	json.NewEncoder(os.Stdout).Encode(lr.OutResponse{
-		Version: resource.Version{
+	json.NewEncoder(os.Stdout).Encode(OutResponse{
+		Version: rir.Version{
 			Digest: digest,
 		},
-		Metadata: []resource.MetadataField{
+		Metadata: []rir.MetadataField{
 			{
 				Name:  "name",
-				Value: req.Source.Name(),
+				Value: config.Name(),
 			},
 		},
 	})
+
 }

@@ -7,20 +7,18 @@ COPY ./ /src
 WORKDIR /src
 ENV CGO_ENABLED 0
 RUN go get -d ./...
-RUN go build -o /assets/out ./cmd/out
+RUN go build -o /assets/lifecycle-build-task ./cmd/task
 RUN set -e; for pkg in $(go list ./...); do \
 		go test -o "/tests/$(basename $pkg).test" -c $pkg; \
 	done
 
 FROM $BUILDER AS resource
 USER root
-COPY --from=registry-image-resource /opt/resource/ /opt/resource
-COPY --from=pack-lifecycle-resource-builder /assets/ /opt/resource
+COPY --from=pack-lifecycle-resource-builder /assets/ /usr/bin
 WORKDIR /opt/resource
 
 FROM resource AS tests
 COPY --from=pack-lifecycle-resource-builder /tests /tests
-COPY ./testdata /tests/testdata
 ARG DOCKER_USERNAME
 ARG DOCKER_PASSWORD
 WORKDIR /tests

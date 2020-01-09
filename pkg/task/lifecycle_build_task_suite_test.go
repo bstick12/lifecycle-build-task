@@ -1,4 +1,4 @@
-package lifecycle_test
+package task_test
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 )
 
 var bins struct {
-	Out string `json:"out"`
+	Task string `json:"task"`
 }
 
 var dockerUsername = os.Getenv("DOCKER_USERNAME")
@@ -30,10 +30,10 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 	b := bins
 
-	if _, err := os.Stat("/opt/resource/in"); err == nil {
-		b.Out = "/opt/resource/out"
+	if _, err := os.Stat("/usr/bin/lifecycle-build-task"); err == nil {
+		b.Task = "/usr/bin/lifecycle-build-task"
 	} else {
-		b.Out, err = gexec.Build("github.com/bstick12/pack-lifecycle-resource/cmd/out")
+		b.Task, err = gexec.Build("github.com/bstick12/pack-lifecycle-resource/cmd/task")
 		Expect(err).ToNot(HaveOccurred())
 	}
 
@@ -52,5 +52,5 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 
 func TestPackLifecycleResource(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "PackLifecycleResource Suite")
+	RunSpecs(t, "CNB Lifecycle Builder Task Suite")
 }

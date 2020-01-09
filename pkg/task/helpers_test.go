@@ -1,4 +1,4 @@
-package lifecycle_test
+package task_test
 
 import (
 	"encoding/base64"
@@ -6,7 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	lr "github.com/bstick12/pack-lifecycle-resource"
+	"github.com/bstick12/pack-lifecycle-resource/pkg/task"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -18,7 +19,7 @@ var _ = Describe("Helpers", func() {
 		It("gets config directory from DOCKER_CONFIG", func() {
 			os.Setenv("DOCKER_CONFIG", "docker-config-path")
 			defer os.Setenv("DOCKER_CONFIG", "")
-			configDir, err := lr.ConfigDir()
+			configDir, err := task.ConfigDir()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(configDir).To(Equal("docker-config-path"))
 		})
@@ -27,18 +28,18 @@ var _ = Describe("Helpers", func() {
 			home := os.Getenv("HOME")
 			os.Setenv("HOME", "/home/user")
 			defer os.Setenv("HOME", home)
-			configDir, err := lr.ConfigDir()
+			configDir, err := task.ConfigDir()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(configDir).To(Equal("/home/user/.docker"))
 		})
 
 		It("fails if config directory can not be determined", func() {
 			environ := os.Environ()
-			defer lr.ResetEnv(environ)
+			defer task.ResetEnv(environ)
 			os.Clearenv()
-			_, err := lr.ConfigDir()
+			_, err := task.ConfigDir()
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(Equal(lr.ErrNoConfigDir))
+			Expect(err).To(Equal(task.ErrNoConfigDir))
 		})
 
 	})
@@ -53,12 +54,12 @@ var _ = Describe("Helpers", func() {
 			os.Setenv("HOME", configDir)
 			defer os.Setenv("HOME", home)
 
-			configFile, err := lr.WriteConfig("registry.io", "username", "password")
+			configFile, err := task.WriteConfig("registry.io", "username", "password")
 			Expect(err).ToNot(HaveOccurred())
 			data, err := ioutil.ReadFile(configFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			var readConfig lr.Config
+			var readConfig task.ConfigDocker
 			err = json.Unmarshal(data, &readConfig)
 			Expect(err).ToNot(HaveOccurred())
 			authEntry := readConfig.Auths["registry.io"]
@@ -68,18 +69,6 @@ var _ = Describe("Helpers", func() {
 
 			Expect("username:password").To(Equal(string(decoded)))
 
-		})
-
-	})
-
-	Context("Resetting environment", func() {
-
-		It("has the same value prior to reset", func() {
-			envVars := os.Environ()
-			os.Clearenv()
-			Expect(os.Environ()).To(HaveLen(0))
-			lr.ResetEnv(envVars)
-			Expect(os.Environ()).To(Equal(envVars))
 		})
 
 	})

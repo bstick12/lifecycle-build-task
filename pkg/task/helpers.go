@@ -1,4 +1,4 @@
-package lifecycle
+package task
 
 import (
 	"encoding/base64"
@@ -8,10 +8,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-type Config struct {
+type ConfigDocker struct {
 	Auths map[string]AuthEntry `json:"auths,omitempty"`
 }
 
@@ -35,7 +34,7 @@ func dockerUserHome() string {
 	return os.Getenv("HOME")
 }
 
-func (c Config) Write() (string, error) {
+func (c ConfigDocker) Write() (string, error) {
 
 	configDir, err := ConfigDir()
 	if err != nil {
@@ -65,9 +64,9 @@ func WriteConfig(registry, username, password string) (string, error) {
 	delimited := fmt.Sprintf("%s:%s", username, password)
 	encoded := base64.StdEncoding.EncodeToString([]byte(delimited))
 
-	config := Config{
+	config := ConfigDocker{
 		Auths: map[string]AuthEntry{
-			registry: AuthEntry{
+			registry: {
 				Auth: encoded,
 			},
 		},
@@ -75,13 +74,4 @@ func WriteConfig(registry, username, password string) (string, error) {
 
 	return config.Write()
 
-}
-
-func ResetEnv(origEnv []string) {
-	for _, pair := range origEnv {
-		i := strings.Index(pair[1:], "=") + 1
-		if err := os.Setenv(pair[:i], pair[i+1:]); err != nil {
-			panic(fmt.Sprintf("Setenv(%q, %q) failed during reset: %v", pair[:i], pair[i+2:], err))
-		}
-	}
 }

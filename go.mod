@@ -9,8 +9,8 @@ require (
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/otiai10/copy v1.0.2
+	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
-	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518 // indirect
-	github.com/src-d/go-git v4.7.0+incompatible
+	github.com/vrischmann/envconfig v1.2.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 )
