@@ -27,7 +27,10 @@ jobs:
         CONTEXT: git-goflake-server
         REGISTRY_USERNAME: ((docker-hub-username))
         REGISTRY_PASSWORD: ((docker-hub-password))
+        CACHE: .cache
       inputs:
       - name: git-goflake-server
       run:
         path: lifecycle-build-task
+      caches:
+      - path: .cache

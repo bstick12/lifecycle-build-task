@@ -35,6 +35,7 @@ Next, any of the following parameters can be specified:
 * `TAG`: Optional. The tag value for the image. Defaults to `latest`
 * `REGISTRY_USERNAME`: Required. The username to authenticate with when pushing
 * `REGISTRY_PASSWORD`: Required. The password to use when authenticating
+* `CACHE`: Optional: Directory that will be used by CNB to cache layers. Task must have `caches` with directory path specified.
 * `CONTEXT`: Required. The directory name of the input source you want to build
 * `DEBUG`: Optional. Log debug output of the task. Defaults to `false`
 * `BUILD_ENV` (default empty): a hash of environment variables that will be passed to the CNB builder
@@ -94,10 +95,13 @@ jobs:
         CONTEXT: git-goflake-server
         REGISTRY_USERNAME: ((docker-hub-username))
         REGISTRY_PASSWORD: ((docker-hub-password))
+        CACHE: .cache
       inputs:
       - name: git-goflake-server
       run:
         path: lifecycle-build-task
+      caches:
+      - path: .cache
 ```
 
 
