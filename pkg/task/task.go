@@ -107,13 +107,13 @@ func BuildTask() {
 		},
 		{
 			"/lifecycle/restorer",
-			[]string{"-layers", layersDir, "-group", groupPath, "-path", config.CacheDir},
+			[]string{"-layers", layersDir, "-group", groupPath, "-cache-dir", config.CacheDir},
 			os.Stderr,
 			true,
 		},
 		{
 			"/lifecycle/analyzer",
-			[]string{"-app", src, "-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, config.Name()},
+			[]string{"-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, config.Name()},
 			os.Stderr,
 			false,
 		},
@@ -131,7 +131,7 @@ func BuildTask() {
 		},
 		{
 			"/lifecycle/cacher",
-			[]string{"-layers", layersDir, "-group", groupPath, "-path", config.CacheDir},
+			[]string{"-layers", layersDir, "-group", groupPath, "-cache-dir", config.CacheDir},
 			os.Stderr,
 			true,
 		},
