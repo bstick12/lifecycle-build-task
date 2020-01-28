@@ -80,14 +80,7 @@ func BuildTask() {
 	}
 
 	registry := ref.Context().RegistryStr()
-
-	configFile, err := WriteConfig(registry, config.Username, config.Password)
-	if err != nil {
-		logrus.Errorf("failed to write docker config.json: %s", err)
-		os.Exit(1)
-		return
-	}
-	logrus.Infof("Wrote %s for registry %s", configFile, registry)
+	os.Setenv("CNB_REGISTRY_AUTH", EncodeRegistryAuth(registry, config.Username, config.Password))
 
 	err = ConfigPlatformEnvVars(platformDir, buildEnv)
 	if err != nil {

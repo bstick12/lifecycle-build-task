@@ -3,8 +3,8 @@ package task
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/concourse/registry-image-resource"
 
+	resource "github.com/concourse/registry-image-resource"
 	"github.com/pkg/errors"
 )
 
