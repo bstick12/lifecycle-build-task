@@ -131,13 +131,12 @@ var _ = Describe("Task", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(session, 200).Should(gexec.Exit(0))
 			Expect(session.Err).To(gbytes.Say("Images "))
-			Expect(session.Err).To(gbytes.Say("Caching layer"))
 
 			session, err = runCmd()
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(session, 200).Should(gexec.Exit(0))
 
-			Expect(session.Err).To(gbytes.Say("Restoring cached layer"))
+			Expect(session.Err).To(gbytes.Say("Restoring data"))
 			Expect(session.Err).To(gbytes.Say("Images "))
 
 			populateResponse(session)

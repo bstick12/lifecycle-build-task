@@ -76,6 +76,7 @@ func BuildTask() {
 			logrus.Errorf("cacheDir does not exist: %s", err)
 		}
 		cachingEnabled = true
+		os.Setenv("CNB_CACHE_DIR", config.CacheDir)
 	}
 
 	registry := ref.Context().RegistryStr()
@@ -106,16 +107,16 @@ func BuildTask() {
 			false,
 		},
 		{
-			"/lifecycle/restorer",
-			[]string{"-layers", layersDir, "-group", groupPath, "-cache-dir", config.CacheDir},
-			os.Stderr,
-			true,
-		},
-		{
 			"/lifecycle/analyzer",
 			[]string{"-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, config.Name()},
 			os.Stderr,
 			false,
+		},
+		{
+			"/lifecycle/restorer",
+			[]string{"-layers", layersDir, "-group", groupPath},
+			os.Stderr,
+			true,
 		},
 		{
 			"/lifecycle/builder",
@@ -128,12 +129,6 @@ func BuildTask() {
 			[]string{"-app", src, "-layers", layersDir, "-helpers=false", "-group", groupPath, "-analyzed=" + analyzedPath, config.Name()},
 			exportWriter,
 			false,
-		},
-		{
-			"/lifecycle/cacher",
-			[]string{"-layers", layersDir, "-group", groupPath, "-cache-dir", config.CacheDir},
-			os.Stderr,
-			true,
 		},
 	}
 
